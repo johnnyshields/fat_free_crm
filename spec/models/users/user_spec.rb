@@ -47,6 +47,9 @@
 require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 
 describe User do
+
+  let(:current_user){ FactoryGirl.build(:user) }
+
   it "should create a new instance given valid attributes" do
     expect(User.new(
       username: "username",
@@ -60,7 +63,7 @@ describe User do
     expect(FactoryGirl.build(:user)).to be_valid
   end
 
-  describe '#destroyable?' do
+  describe '#destroyable?(current_user)' do
     describe "Destroying users with and without related assets" do
       before do
         @user = FactoryGirl.build(:user)
@@ -70,30 +73,27 @@ describe User do
         it "should not destroy the user if she owns #{asset}" do
           FactoryGirl.create(asset, user: @user)
 
-          expect(@user.destroyable?).to eq(false)
+          expect(@user.destroyable?(current_user)).to eq(false)
         end
 
         it "should not destroy the user if she has #{asset} assigned" do
           FactoryGirl.create(asset, assignee: @user)
-          expect(@user.destroyable?).to eq(false)
+          expect(@user.destroyable?(current_user)).to eq(false)
         end
       end
 
       it "should not destroy the user if she owns a comment" do
-        login
         account = build(:account, user: current_user)
         FactoryGirl.create(:comment, user: @user, commentable: account)
-        expect(@user.destroyable?).to eq(false)
+        expect(@user.destroyable?(current_user)).to eq(false)
       end
 
       it "should not destroy the current user" do
-        login
-
-        expect(current_user.destroyable?).to eq(false)
+        expect(current_user.destroyable?(current_user)).to eq(false)
       end
 
       it "should destroy the user" do
-        expect(@user.destroyable?).to eq(true)
+        expect(@user.destroyable?(current_user)).to eq(true)
       end
     end
   end
