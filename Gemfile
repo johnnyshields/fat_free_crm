@@ -8,7 +8,7 @@ db_drivers = {
   "postgres" => "pg"
 }
 
-gem db_drivers[ENV['CI'] && ENV['DB']] || 'pg'
+gem db_drivers[ENV['CI'] && ENV['DB']] || 'sqlite3'
 
 # Removes a gem dependency
 def remove(name)
@@ -85,3 +85,6 @@ gem 'execjs'
 gem 'therubyracer', platform: :ruby unless ENV["CI"]
 gem 'nokogiri', '>= 1.6.8'
 gem 'activemodel-serializers-xml'
+
+gem 'tzinfo-data'
+require 'em/pure_ruby'

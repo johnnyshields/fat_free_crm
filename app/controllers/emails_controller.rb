@@ -4,7 +4,36 @@
 # See MIT-LICENSE file or http://www.opensource.org/licenses/mit-license.php
 #------------------------------------------------------------------------------
 class EmailsController < ApplicationController
-  before_action :require_user
+  before_filter :authenticate_user!
+
+  # GET /email
+  # GET /email.xml                                              not implemented
+  #----------------------------------------------------------------------------
+  # def index
+  # end
+
+  # GET /email/1
+  # GET /email/1.xml                                            not implemented
+  #----------------------------------------------------------------------------
+  # def show
+  # end
+
+  # GET /emails/new
+  # GET /emails/new.xml                                         not implemented
+  #----------------------------------------------------------------------------
+  # def new
+  # end
+
+  # GET /emails/1/edit                                          not implemented
+  #----------------------------------------------------------------------------
+  # def edit
+  # end
+
+  # PUT /emails/1
+  # PUT /emails/1.xml                                           not implemented
+  #----------------------------------------------------------------------------
+  # def update
+  # end
 
   # DELETE /emails/1
   # DELETE /emails/1.json

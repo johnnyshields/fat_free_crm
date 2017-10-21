@@ -19,27 +19,21 @@ class UsersController < ApplicationController
     respond_with(@user)
   end
 
-  # GET /users/new
-  # GET /users/new.js
-  #----------------------------------------------------------------------------
-  def new
-    respond_with(@user)
-  end
-
   # POST /users
   # POST /users.js
   #----------------------------------------------------------------------------
+  # TODO: move into devise/registrations
   def create
     if @user.save
       if Setting.user_signup == :needs_approval
         flash[:notice] = t(:msg_account_created)
-        redirect_to login_url
+        redirect_to new_user_session_url
       else
         flash[:notice] = t(:msg_successful_signup)
         redirect_back_or_default profile_url
       end
     else
-      render :new
+      render "devise/registrations/new"
     end
   end
 

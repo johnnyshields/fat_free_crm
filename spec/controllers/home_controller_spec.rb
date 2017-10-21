@@ -6,11 +6,17 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe HomeController do
+
+  let(:user) do
+    FactoryGirl.create(:user)
+  end
+
   # GET /
   #----------------------------------------------------------------------------
   describe "responding to GET /" do
+
     before(:each) do
-      require_user
+      sign_in(:user, user)
     end
 
     it "should get a list of activities" do
@@ -73,15 +79,24 @@ describe HomeController do
       FactoryGirl.create(:account, name: "Not my account", assigned_to: FactoryGirl.create(:user).id)
 
       get :index
-      expect(assigns[:my_accounts]).to eq([account_1, account_4, account_3, account_2])
+      assigns[:my_accounts].should == [account_1, account_4, account_3, account_2]
+    end
+
+    it "should assign @hello and call hook" do
+      controller.should_receive(:hook).at_least(:once)
+
+      get :index
+      assigns[:hello].should == "Hello world"
     end
   end
 
   # GET /home/options                                                      AJAX
   #----------------------------------------------------------------------------
   describe "responding to GET options" do
+
     before(:each) do
-      require_user
+      @current_user = user
+      sign_in(:user, @current_user)
     end
 
     it "should assign instance variables for user preferences" do
@@ -109,14 +124,18 @@ describe HomeController do
   #----------------------------------------------------------------------------
   describe "responding to GET redraw" do
     before(:each) do
-      require_user
+      sign_in(:user, user)
     end
 
     it "should save user selected options" do
-      get :redraw, params: { asset: "tasks", user: "Billy Bones", duration: "two days" }, xhr: true
-      expect(current_user.pref[:activity_asset]).to eq("tasks")
-      expect(current_user.pref[:activity_user]).to eq("Billy Bones")
-      expect(current_user.pref[:activity_duration]).to eq("two days")
+      xhr :post, :redraw, :asset => "tasks", :user => "Billy Bones", :duration => "two days"
+      current_user.pref[:activity_asset].should == "tasks"
+      current_user.pref[:activity_user].should == "Billy Bones"
+      current_user.pref[:activity_duration].should == "two days"
+
+      @controller.current_user.pref[:activity_asset].should == "tasks"
+      @controller.current_user.pref[:activity_user].should == "Billy Bones"
+      @controller.current_user.pref[:activity_duration].should == "two days"
     end
 
     it "should get a list of activities" do

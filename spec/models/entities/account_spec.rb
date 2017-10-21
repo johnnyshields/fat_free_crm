@@ -28,7 +28,6 @@
 require 'spec_helper'
 
 describe Account do
-  before { login }
 
   it "should create a new instance given valid attributes" do
     Account.create!(name: "Test Account", user: FactoryGirl.create(:user))

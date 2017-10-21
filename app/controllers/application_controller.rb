@@ -15,7 +15,6 @@ class ApplicationController < ActionController::Base
   after_action { hook(:app_after_filter,  self) }
   after_action :cors_set_access_control_headers
 
-  helper_method :current_user_session, :current_user, :can_signup?
   helper_method :called_from_index_page?, :called_from_landing_page?
   helper_method :klass
 
@@ -107,38 +106,25 @@ class ApplicationController < ActionController::Base
   end
 
   #----------------------------------------------------------------------------
-  def current_user_session
-    @current_user_session ||= Authentication.find
-    if @current_user_session && @current_user_session.record.suspended?
-      @current_user_session = nil
-    end
-    @current_user_session
-  end
+ #  def current_user_session
+ #    @current_user_session ||= Authentication.find
+ #    if @current_user_session && @current_user_session.record.suspended?
+ #      @current_user_session = nil
+ #    end
+ #    @current_user_session
+ #  end
 
   #----------------------------------------------------------------------------
-  def current_user
-    unless @current_user
-      @current_user = (current_user_session && current_user_session.record)
-      if @current_user
-        @current_user.set_individual_locale
-        @current_user.set_single_access_token
-      end
-      User.current_user = @current_user
-    end
-    @current_user
-  end
-
-  #----------------------------------------------------------------------------
-  def require_user
-    unless current_user
-      store_location
-      flash[:notice] = t(:msg_login_needed) if request.fullpath != "/"
-      respond_to do |format|
-        format.html { redirect_to login_url }
-        format.js   { render plain: "window.location = '#{login_url}';" }
-      end
-    end
-  end
+ # def require_user
+ #   unless current_user
+ #     store_location
+ #     flash[:notice] = t(:msg_login_needed) if request.fullpath != "/"
+ #     respond_to do |format|
+ #       format.html { redirect_to login_url }
+ #       format.js   { render plain: "window.location = '#{login_url}';" }
+ #     end
+ #   end
+ # end
 
   #----------------------------------------------------------------------------
   def require_no_user

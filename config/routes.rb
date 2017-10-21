@@ -4,16 +4,26 @@
 # See MIT-LICENSE file or http://www.opensource.org/licenses/mit-license.php
 #------------------------------------------------------------------------------
 Rails.application.routes.draw do
+
+  devise_for :users, controllers: {registrations: 'registrations', sessions: 'sessions', passwords: 'passwords'}
+
+  devise_scope :user do
+    resources :users, only: [:index, :show]
+    get 'login', to: 'sessions#new', as: :new_user_session
+    get 'logout', to: 'sessions#destroy', as: :logout
+    get 'signup', to: 'registrations#new'
+    post 'signup', to: 'registrations#create', as: :user_registration
+    get 'passwords', to: 'passwords#new', as: :new_user_password
+    post 'passwords', to: 'passwords#create', as: :user_password
+  end
+
   resources :lists
 
   root to: 'home#index'
 
-  get 'activities' => 'home#index'
-  get 'admin'      => 'admin/users#index',       :as => :admin
-  get 'login'      => 'authentications#new',     :as => :login
-  delete 'logout'  => 'authentications#destroy', :as => :logout
-  get 'profile'    => 'users#show',              :as => :profile
-  get 'signup'     => 'users#new',               :as => :signup
+  match 'activities' => 'home#index'
+  match 'admin'      => 'admin/users#index',       as: :admin
+  match 'profile'    => 'users#show',              as: :profile
 
   get '/home/options',  as: :options
   get '/home/toggle',   as: :toggle
@@ -21,10 +31,8 @@ Rails.application.routes.draw do
   match '/home/timezone', as: :timezone, via: [:get, :put, :post]
   post '/home/redraw',   as: :redraw
 
-  resource :authentication, except: [:index, :edit]
-  resources :comments,       except: [:new, :show]
-  resources :emails,         only: [:destroy]
-  resources :passwords,      only: [:new, :create, :edit, :update]
+  resources :comments, except: [:new, :show]
+  resources :emails
 
   resources :accounts, id: /\d+/ do
     collection do
@@ -140,9 +148,7 @@ Rails.application.routes.draw do
   resources :users, id: /\d+/, except: [:index, :destroy] do
     member do
       get :avatar
-      get :password
       match :upload_avatar, via: [:put, :patch]
-      patch :change_password
       post :redraw
     end
     collection do

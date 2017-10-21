@@ -44,8 +44,12 @@ describe TasksController do
     end
   end
 
+  let(:user) do
+    FactoryGirl.create(:user)
+  end
+
   before(:each) do
-    require_user
+    sign_in(:user, user)
     set_current_tab(:tasks)
   end
 

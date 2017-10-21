@@ -35,7 +35,7 @@
 #  updated_at          :datetime
 #  admin               :boolean         default(FALSE), not null
 #  suspended_at        :datetime
-#  single_access_token :string(255)
+#  authentication_token :string(255)
 #
 
 require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
@@ -209,18 +209,18 @@ describe User do
   end
 
   describe "Setting single access token" do
-    it "should update single_access_token attribute if it is not set already" do
-      @user = FactoryGirl.build(:user, single_access_token: nil)
+    it "should update authentication_token attribute if it is not set already" do
+      @user = FactoryGirl.create(:user, :authentication_token => nil)
 
-      @user.set_single_access_token
-      expect(@user.single_access_token).not_to eq(nil)
+      @user.ensure_authentication_token
+      @user.authentication_token.should_not == nil
     end
 
-    it "should not update single_access_token attribute if it is set already" do
-      @user = FactoryGirl.build(:user, single_access_token: "token")
+    it "should not update authentication_token attribute if it is set already" do
+      @user = FactoryGirl.create(:user, :authentication_token => "token")
 
-      @user.set_single_access_token
-      expect(@user.single_access_token).to eq("token")
+      @user.ensure_authentication_token
+      @user.authentication_token.should == "token"
     end
   end
 

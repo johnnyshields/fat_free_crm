@@ -39,6 +39,11 @@
 #
 
 class User < ActiveRecord::Base
+  # Include default devise modules. Others available are:
+  # :token_authenticatable, :encryptable, :confirmable, :lockable, :timeoutable and :omniauthable
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :trackable, :validatable, :token_authenticatable
+
   has_one :avatar, as: :entity, dependent: :destroy  # Personal avatar.
   has_many :avatars                                         # As owner who uploaded it, ex. Contact avatar.
   has_many :comments, as: :commentable                   # As owner who created a comment.
@@ -71,16 +76,6 @@ class User < ActiveRecord::Base
       .where("opportunities.stage <> 'lost' AND opportunities.stage <> 'won'")
       .select('DISTINCT(users.id), users.*')
   }
-
-  acts_as_authentic do |c|
-    c.session_class = Authentication
-    c.validates_uniqueness_of_login_field_options = { case_sensitive: false, message: :username_taken }
-    c.validates_length_of_login_field_options     = { minimum: 1, message: :missing_username }
-    c.validates_uniqueness_of_email_field_options = { message: :email_in_use }
-    c.validates_length_of_password_field_options  = { minimum: 0, allow_blank: true, if: :require_password? }
-    c.ignore_blank_passwords = true
-    c.crypto_provider = Authlogic::CryptoProviders::Sha512
-  end
 
   # Store current user in the class so we could access it from the activity
   # observer without extra authentication query.
@@ -126,12 +121,6 @@ class User < ActiveRecord::Base
     I18n.locale = preference[:locale] if preference[:locale]
   end
 
-  # Generate the value of single access token if it hasn't been set already.
-  #----------------------------------------------------------------------------
-  def set_single_access_token
-    self.single_access_token ||= update_attribute(:single_access_token, Authlogic::Random.friendly_token)
-  end
-
   def to_json(_options = nil)
     [name].to_json
   end
@@ -143,6 +132,12 @@ class User < ActiveRecord::Base
   def destroyable?
     check_if_current_user && !has_related_assets?
   end
+
+  def after_token_authentication
+    reset_authentication_token!
+  end
+
+  private
 
   # Suspend newly created user if signup requires an approval.
   #----------------------------------------------------------------------------
@@ -179,6 +174,17 @@ class User < ActiveRecord::Base
     def can_signup?
       [:allowed, :needs_approval].include? Setting.user_signup
     end
+  end
+
+  # Single access token:  reset the authentication,
+  protected
+
+  def self.find_for_database_authentication(conditions)
+    login = conditions.delete(:login)
+    where(conditions)
+    .where(["username = :login OR email = :login",
+           {:login => login}])
+    .first
   end
 
   ActiveSupport.run_load_hooks(:fat_free_crm_user, self)

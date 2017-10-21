@@ -21,8 +21,8 @@ class Admin::ApplicationController < ApplicationController
 
   #----------------------------------------------------------------------------
   def require_admin_user
-    require_user
-    if current_user && !current_user.admin?
+    authenticate_user!
+    if @current_user && !@current_user.admin?
       flash[:notice] = t(:msg_require_admin)
       redirect_to root_path
     end

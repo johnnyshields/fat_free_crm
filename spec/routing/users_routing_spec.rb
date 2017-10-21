@@ -12,7 +12,7 @@ describe UsersController do
     end
 
     it "recognizes and generates #new as /signup" do
-      expect(get: "/signup").to route_to(controller: "users", action: "new")
+      expect(get: "/signup").to route_to(controller: "registrations", action: "new")
     end
 
     it "recognizes and generates #show as /profile" do

@@ -4,7 +4,7 @@
 # See MIT-LICENSE file or http://www.opensource.org/licenses/mit-license.php
 #------------------------------------------------------------------------------
 class HomeController < ApplicationController
-  before_action :require_user, except: [:toggle, :timezone]
+  before_action :authenticate_user!, except: [:toggle, :timezone]
   before_action :set_current_tab, only: :index
 
   #----------------------------------------------------------------------------

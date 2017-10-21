@@ -4,7 +4,7 @@
 # See MIT-LICENSE file or http://www.opensource.org/licenses/mit-license.php
 #------------------------------------------------------------------------------
 class TasksController < ApplicationController
-  before_action :require_user
+  before_action :authenticate_user!
   before_action :set_current_tab, only: [:index, :show]
   before_action :update_sidebar, only: :index
 
