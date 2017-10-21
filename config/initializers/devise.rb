@@ -218,8 +218,8 @@ Devise.setup do |config|
   #
   # Require the `devise-encryptable` gem when using anything other than bcrypt
 
-  # Using :sha512 for backward compatibility with Authlogic gem
-  config.encryptor = :sha512
+  # Backward compatibility with Authlogic gem
+  config.encryptor = :authlogic_sha512
   config.stretches = Rails.env.test? ? 1 : 20
 
   # ==> Scopes configuration
