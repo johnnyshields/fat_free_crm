@@ -38,7 +38,7 @@ remove 'fat_free_crm'
 group :development do
   # don't load these gems in travis
   unless ENV["CI"]
-    gem 'thin'
+    gem 'puma'
     gem 'capistrano'
     gem 'capistrano-bundler'
     gem 'capistrano-rails'
