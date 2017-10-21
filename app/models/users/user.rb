@@ -82,11 +82,12 @@ class User < ActiveRecord::Base
   }
 
   validates :email, presence: { message: :missing_email },
-            uniqueness: { message: :email_in_use },
+            length: { minimum: 3, maximum: 254 },
+            uniqueness: { message: :email_in_use, case_sensitive: false },
             format: { with: /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i, on: :create }
-  validates :username, uniqueness: { message: :username_taken },
+  validates :username, uniqueness: { message: :username_taken, case_sensitive: false },
             presence: { message: :missing_username },
-            format: { with: /[a-zA-Z0-9_-]+/ }
+            format: { with: /[a-z0-9_-]+/i }
   validates :password, presence: { if: :password_required? }, confirmation: true
 
   #----------------------------------------------------------------------------
@@ -189,6 +190,15 @@ class User < ActiveRecord::Base
 
     def can_signup?
       [:allowed, :needs_approval].include? Setting.user_signup
+    end
+
+    # Overrides Devise sign-in to use either username or email (case-insensitive)
+    #----------------------------------------------------------------------------
+    def find_for_database_authentication(warden_conditions)
+      conditions = warden_conditions.dup
+      if login = conditions.delete(:email)
+        where(conditions.to_h).where(["lower(username) = :value OR lower(email) = :value", { value: login.downcase }]).first
+      end
     end
   end
 
