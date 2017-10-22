@@ -31,7 +31,7 @@ describe "/users/upload_avatar" do
     before do
       @avatar = FactoryGirl.build_stubbed(:avatar, entity: current_user)
       @avatar.errors.add(:image, "error")
-      allow(current_user).to receive(:avatar).and_return(@avatar)
+      allow_any_instance_of(User).to receive(:avatar).and_return(@avatar)
       assign(:user, @user = current_user)
     end
 
