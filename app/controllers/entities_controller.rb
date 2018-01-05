@@ -135,71 +135,33 @@ class EntitiesController < ApplicationController
   # Get list of records for a given model class.
   #----------------------------------------------------------------------------
   def get_list_of_records(options = {})
-    options[:query]  ||= params[:query]                        if params[:query]
-    self.current_page  = options[:page]                        if options[:page]
-    query, tags        = parse_query_and_tags(options[:query])
-    self.current_query = query
+    self.current_page = options[:page] if options[:page]
+    per_page = options[:per_page] || current_user.pref[:"#{controller_name}_per_page"]
     advanced_search = params[:q].present?
-    wants = request.format
-
+    filter = session[:"#{controller_name}_filter"].to_s.split(',').presence
+    order = current_user.pref[:"#{controller_name}_sort_by"] || klass.sort_by
     scope = entities.merge(ransack_search.result(distinct: true))
+    included_relations = list_includes if respond_to?(:list_includes, true)
 
-    # Get filter from session, unless running an advanced search
-    unless advanced_search
-      filter = session[:"#{controller_name}_filter"].to_s.split(',')
-      scope = scope.state(filter) if filter.present?
-    end
+    builder = EntitiesListQuery.new(scope,
+                                    options[:query] || params[:query],
+                                    filter,
+                                    order,
+                                    advanced_search,
+                                    current_page,
+                                    per_page,
+                                    request.format,
+                                    included_relations)
+    builder.build!
 
-    scope = scope.text_search(query)              if query.present?
-    scope = scope.tagged_with(tags, on: :tags) if tags.present?
-
-    # Ignore this order when doing advanced search
-    unless advanced_search
-      order = current_user.pref[:"#{controller_name}_sort_by"] || klass.sort_by
-      scope = scope.order(order)
-    end
-
-    @search_results_count = scope.count
-
-    # Pagination is disabled for xls and csv requests
-    unless wants.xls? || wants.csv?
-      per_page = if options[:per_page]
-                   options[:per_page] == 'all' ? @search_results_count : options[:per_page]
-                 else
-                   current_user.pref[:"#{controller_name}_per_page"]
-      end
-      scope = scope.paginate(page: current_page, per_page: per_page)
-    end
-
-    if respond_to?(:list_includes, true)
-      scope = scope.includes(*list_includes)
-    end
-
-    scope
+    self.current_query    = builder.query
+    @search_results_count = builder.count
+    builder.scope
   end
 
   #----------------------------------------------------------------------------
   def update_recently_viewed
     entity.versions.create(event: :view, whodunnit: PaperTrail.whodunnit)
-  end
-
-  # Somewhat simplistic parser that extracts query and hash-prefixed tags from
-  # the search string and returns them as two element array, for example:
-  #
-  # "#real Billy Bones #pirate" => [ "Billy Bones", "real, pirate" ]
-  #----------------------------------------------------------------------------
-  def parse_query_and_tags(search_string)
-    return ['', ''] if search_string.blank?
-    query = []
-    tags = []
-    search_string.strip.split(/\s+/).each do |token|
-      if token.starts_with?("#")
-        tags << token[1..-1]
-      else
-        query << token
-      end
-    end
-    [query.join(" "), tags.join(", ")]
   end
 
   #----------------------------------------------------------------------------
