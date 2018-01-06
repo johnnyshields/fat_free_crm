@@ -3,6 +3,9 @@ inherit_from: .rubocop_todo.yml
 AllCops:
   TargetRubyVersion: 2.3
 
+Bundler/OrderedGems:
+  Enabled: false
+
 Layout/EmptyLinesAroundBlockBody:
   Exclude:
     - 'db/schema.rb'
@@ -11,13 +14,27 @@ Lint/ScriptPermission:
   Exclude:
     - 'Rakefile'
 
-Bundler/OrderedGems:
+Metrics/LineLength:
   Enabled: false
+
+Metrics/BlockLength:
+  Exclude:
+    - 'Gemfile'
+    - 'config/routes.rb'
+    - 'db/schema.rb'
+    - 'db/migrate/**/*'
+    - 'spec/**/*'
+    - '**/*.gemspec'
+    - '**/*.rake'
+    - '**/*.xls.builder'
 
 StringLiterals:
   Enabled: false
 
-Metrics/LineLength:
+Style/Alias:
+  EnforcedStyle: prefer_alias
+
+Style/Documentation:
   Enabled: false
 
 Style/EmptyMethod:
@@ -25,6 +42,11 @@ Style/EmptyMethod:
 
 Style/MutableConstant:
   Enabled: false
+
+Style/NumericLiterals:
+  MinDigits: 15
+  Exclude:
+    - 'db/schema.rb'
 
 Style/WordArray:
   Exclude:
